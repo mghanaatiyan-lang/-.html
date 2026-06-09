@@ -1,0 +1,243 @@
+
+<!DOCTYPE html>
+<html lang="fa">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ساعت شمسی با هشدار</title>
+
+    <style>
+        body {
+            background: linear-gradient(135deg, #000000, #0f172a);
+            font-family: Tahoma, sans-serif;
+            text-align: center;
+            color: white;
+            padding-top: 50px;
+        }
+
+        .container {
+            width: 90%;
+            max-width: 700px;
+            margin: auto;
+        }
+
+        #clock {
+            border: 3px solid #00ff88;
+            border-radius: 25px;
+            padding: 30px;
+            box-shadow: 0 0 30px #00ff88;
+            margin-bottom: 30px;
+            transition: 0.5s;
+        }
+
+        #clock:hover {
+            transform: scale(1.03);
+            box-shadow: 0 0 50px #00ff88;
+        }
+
+        .date {
+            font-size: 35px;
+            margin-bottom: 15px;
+        }
+
+        .time {
+            font-size: 75px;
+            font-weight: bold;
+            color: #00ff88;
+        }
+
+        .alarm-box {
+            background: rgba(255,255,255,0.08);
+            border-radius: 20px;
+            padding: 20px;
+            backdrop-filter: blur(8px);
+        }
+
+        input {
+            width: 100px;
+            padding: 10px;
+            font-size: 20px;
+            text-align: center;
+            border-radius: 10px;
+            border: none;
+            margin: 5px;
+        }
+
+        button {
+            padding: 12px 25px;
+            font-size: 18px;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: .3s;
+            margin: 5px;
+        }
+
+        #setAlarm {
+            background: #00c853;
+            color: white;
+        }
+
+        #setAlarm:hover {
+            background: #00e676;
+        }
+
+        #stopAlarm {
+            background: #d50000;
+            color: white;
+        }
+
+        #stopAlarm:hover {
+            background: #ff1744;
+        }
+
+        #status {
+            margin-top: 15px;
+            font-size: 22px;
+            color: gold;
+        }
+    </style>
+     <link rel="icon" type="image/x-icon" href="good.jpg">
+
+</head>
+
+<body>
+
+    <div class="container">
+
+        <div id="clock">
+            <div class="date">----</div>
+            <div class="time">00:00:00</div>
+        </div>
+
+        <div class="alarm-box">
+
+            <h2>تنظیم هشدار</h2>
+
+            <input type="number" id="hourInput" min="0" max="23" placeholder="ساعت">
+
+            <input type="number" id="minuteInput" min="0" max="59" placeholder="دقیقه">
+
+            <button id="setAlarm" onclick="setAlarm()">
+                تنظیم هشدار
+            </button>
+
+            <button id="stopAlarm" onclick="stopAlarm()">
+                قطع هشدار
+            </button>
+
+            <div id="status">
+                هشدار تنظیم نشده
+            </div>
+
+        </div>
+
+    </div>
+
+    <script>
+
+        let alarmHour = null;
+        let alarmMinute = null;
+        let ringing = false;
+
+        function updateClock() {
+
+            let now = new Date();
+
+            let date = new Intl.DateTimeFormat('fa-IR', {
+                weekday: 'long',
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit'
+            }).format(now);
+
+            let h = now.getHours();
+            let m = now.getMinutes();
+            let s = now.getSeconds();
+
+            let hh = h.toString().padStart(2, '0');
+            let mm = m.toString().padStart(2, '0');
+            let ss = s.toString().padStart(2, '0');
+
+            document.getElementById("clock").innerHTML =
+                '<div class="date">' + date + '</div>' +
+                '<div class="time">' + hh + ':' + mm + ':' + ss + '</div>';
+
+            if (
+                alarmHour !== null &&
+                alarmMinute !== null &&
+                h == alarmHour &&
+                m == alarmMinute &&
+                s == 0 &&
+                !ringing
+            ) {
+                ringing = true;
+                startAlarm();
+            }
+        }
+
+        let audioContext;
+        let oscillator;
+
+        function startAlarm() {
+
+            audioContext = new (window.AudioContext || window.webkitAudioContext)();
+
+            oscillator = audioContext.createOscillator();
+
+            oscillator.type = "square";
+            oscillator.frequency.value = 800;
+
+            oscillator.connect(audioContext.destination);
+
+            oscillator.start();
+
+            alert("⏰ زمان هشدار رسید!");
+
+        }
+
+        function stopAlarm() {
+
+            if (oscillator) {
+                oscillator.stop();
+                oscillator.disconnect();
+                ringing = false;
+            }
+
+        }
+
+        function setAlarm() {
+
+            alarmHour =
+                parseInt(document.getElementById("hourInput").value);
+
+            alarmMinute =
+                parseInt(document.getElementById("minuteInput").value);
+
+            if (
+                isNaN(alarmHour) ||
+                isNaN(alarmMinute)
+            ) {
+
+                alert("ساعت و دقیقه را وارد کن");
+
+                return;
+            }
+
+            document.getElementById("status").innerHTML =
+                "⏰ هشدار برای ساعت " +
+                alarmHour + ":" +
+                alarmMinute +
+                " تنظیم شد";
+        }
+
+        updateClock();
+        setInterval(updateClock, 1000);
+
+    </script>
+
+</body>
+
+</html>
+
